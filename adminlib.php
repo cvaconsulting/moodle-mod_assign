@@ -463,7 +463,7 @@ class assign_plugin_manager {
 
         foreach ($pluginsbyname as $pluginname => $plugin) {
             $settings = new admin_settingpage($subtype . '_'.$plugin,
-                    $pluginname, 'moodle/site:config', $module->is_enabled() === false);
+                    $pluginname, 'moodle/site:config', !$module->visible);
             if ($admin->fulltree) {
                 $shortsubtype = substr($subtype, strlen('assign'));
                 include($CFG->dirroot . "/mod/assign/$shortsubtype/$plugin/settings.php");

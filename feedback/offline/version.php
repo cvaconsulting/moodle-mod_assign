@@ -25,6 +25,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2012112900;
-$plugin->requires  = 2012112900;
+$plugin->requires  = 2011120500;
 $plugin->component = 'assignfeedback_offline';
 

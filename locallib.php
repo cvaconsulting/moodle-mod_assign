@@ -1477,6 +1477,23 @@ class assign {
     }
 
     /**
+     * Mark in the database that this grade record should have an update notification sent by cron.
+     *
+     * @param stdClass $grade a grade record keyed on id
+     * @return bool true for success
+     */
+    public function notify_grade_modified($grade) {
+        global $DB;
+
+        $grade->timemodified = time();
+        if ($grade->mailed != 1) {
+            $grade->mailed = 0;
+        }
+
+        return $DB->update_record('assign_grades', $grade);
+    }
+
+    /**
      * Update a grade in the grade table for the assignment and in the gradebook
      *
      * @param stdClass $grade a grade record keyed on id
@@ -2175,6 +2192,10 @@ class assign {
             $grade->grade = -1;
             $grade->grader = $USER->id;
             $grade->extensionduedate = 0;
+
+            // The mailed flag can be one of 3 values: 0 is unsent, 1 is sent and 2 is do not send yet.
+            // This is because students only want to be notified about certain types of update (grades and feedback).
+            $grade->mailed = 2;
             $gid = $DB->insert_record('assign_grades', $grade);
             $grade->id = $gid;
             return $grade;
@@ -3712,6 +3733,7 @@ class assign {
             }
 
             $this->update_grade($grade);
+            $this->notify_grade_modified($grade);
 
             // save outcomes
             if ($CFG->enableoutcomes) {
@@ -4406,6 +4428,7 @@ class assign {
             }
         }
         $this->update_grade($grade);
+        $this->notify_grade_modified($grade);
         $user = $DB->get_record('user', array('id' => $userid), '*', MUST_EXIST);
 
         $this->add_to_log('grade submission', $this->format_grade_for_log($grade));
@@ -4987,3 +5010,53 @@ class assign_portfolio_caller extends portfolio_module_caller_base {
 
     }
 }
+
+    /**
+     * Return the relative icon path for a given file
+     *
+     * Usage:
+     * <code>
+     * // $file - instance of stored_file or file_info
+     * $icon = $OUTPUT->pix_url(file_file_icon($file))->out();
+     * echo html_writer::empty_tag('img', array('src' => $icon, 'alt' => get_mimetype_description($file)));
+     * </code>
+     * or
+     * <code>
+     * echo $OUTPUT->pix_icon(file_file_icon($file), get_mimetype_description($file));
+     * </code>
+     *
+     * @param stored_file|file_info|stdClass|array $file (in case of object attributes $file->filename
+     *     and $file->mimetype are expected)
+     * @param int $size The size of the icon. Defaults to 16 can also be 24, 32, 64, 128, 256
+     * @return string
+     */
+    function file_file_icon($file, $size = null) {
+        if (!is_object($file)) {
+            $file = (object)$file;
+        }
+        if (isset($file->filename)) {
+            $filename = $file->filename;
+        } else if (method_exists($file, 'get_filename')) {
+            $filename = $file->get_filename();
+        } else if (method_exists($file, 'get_visible_name')) {
+            $filename = $file->get_visible_name();
+        } else {
+            $filename = '';
+        }
+        if (isset($file->mimetype)) {
+            $mimetype = $file->mimetype;
+        } else if (method_exists($file, 'get_mimetype')) {
+            $mimetype = $file->get_mimetype();
+        } else {
+            $mimetype = '';
+        }
+        $mimetypes = &get_mimetypes_array();
+        if ($filename) {
+            $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            if ($extension && !empty($mimetypes[$extension])) {
+                // if file name has known extension, return icon for this extension
+                return file_extension_icon($filename, $size);
+            }
+        }
+        return file_mimetype_icon($mimetype, $size);
+    }

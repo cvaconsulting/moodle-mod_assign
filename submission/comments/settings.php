@@ -23,6 +23,6 @@
  */
 
 $settings->add(new admin_setting_configcheckbox('assignsubmission_comments/default',
-                   new lang_string('default', 'assignsubmission_comments'),
-                   new lang_string('default_help', 'assignsubmission_comments'), 0));
+                   get_string('default', 'assignsubmission_comments'),
+                   get_string('default_help', 'assignsubmission_comments'), 0));
 
