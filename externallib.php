@@ -184,7 +184,7 @@ class mod_assign_external extends external_api {
         return new external_single_structure(
             array(
                 'assignments' => new external_multiple_structure(self::assign_grades(), 'list of assignment grade information'),
-                'warnings'      => new external_warnings()
+                //'warnings'      => new external_warnings()
             )
         );
     }
@@ -425,7 +425,7 @@ class mod_assign_external extends external_api {
         return new external_single_structure(
             array(
                 'courses' => new external_multiple_structure(self::get_assignments_course_structure(), 'list of courses'),
-                'warnings'  => new external_warnings()
+                //'warnings'  => new external_warnings()
             )
         );
     }
